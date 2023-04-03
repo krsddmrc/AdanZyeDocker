@@ -1,0 +1,87 @@
+1: Öncelikle sistemdeki tüm container, image ve volumeleri görelim. Bunun için ayrı ayrı listeleme komutlarını girelim. Ve ardından 
+temizlik yapmak adına makinenizdeki tüm containerları, imageleri ve volumeleri temizleyelim. Bunun iki yöntemi var. Bakalım siz kolay olanı mı seçeceksiniz. 
+   docker container ls, docker container ls -a, docker image ls, docker image -a, docker volume ls, 
+   docker volume rm deneme1, docker volume prune, docker image rm nginx, docker image prune, docker image prune -a, docker container rm .., docker container prune 
+
+2: centos, alpine, nginx, httpd:alpine, ozgurozturknet/adanzyedocker, ozgurozturknet/hello-app, ozgurozturknet/app1 isimli imajları çalıştığımız sisteme çekelim. 
+     pull işlemleri:  docker pull centos, windows terminalde çalıştırdık ve DockerHub'dan centos işletim sistemnin imajını aldı.
+     pull işlemleri:  docker pull alpine, windows terminalde çalıştırdık ve DockerHub'dan alpine işletim sistemnin imajını aldı.
+     pull işlemleri:  docker pull nginx, windows terminalde çalıştırdık ve DockerHub'dan nginx işletim sistemnin imajını aldı.
+     pull işlemleri:  docker pull ozgurozturknet/adanzyedocker, windows terminalde çalıştırdık ve adresten sistemnin imajını aldı.
+     pull işlemleri:  docker pull ozgurozturknet/hello-app, windows terminalde çalıştırdık ve adresten sistemnin imajını aldı.
+     pull işlemleri:  docker pull ozgurozturknet/app1, windows terminalde çalıştırdık ve adresten sistemnin imajını aldı.
+
+3: ozgurozturknet/app1 isimli imajdan bir container yaratalım.
+    docker container run ozgurozturknet/app1  --> oluştruldu ekrana "Merhaba arkadaşlar ben bir App1 uygulamasiyim " yazısı geldi
+
+4: httpd:alpine isimli imajdan detached bir container yaratalım. Yarattığımız container ismini ve id’sini görelim. 
+    docker container run -d httpd:alpine --> oluştruldu ismini kontrol etmek için "docker ps" komutu girdim. ismi: peaceful_easley, id: e20...
+
+5: Yarattığımız bu contaier’ın loglarına bakalım.
+    logları görmek için "docker log e20" yada  "docker log peaceful_easley" komutu girerek loglarını gördüm
+
+6: Container’ı durduralım, ardından yeniden çalıştıralım ve son olarak container’ı sistemden kaldıralım. 
+    Contaienri durdurmak için: docker container stop e20 komutu girdim durduğunu kontrol etmek için "docker ps" komutu girdim. container listesi gelmedi.
+"container ps -a" komutu girdim durudulmuş olduğunu gördüm. "Exited"
+    Tekrar çalıştırmak için " docker container start e20" komutu verdim. çalışrı halde olduğunu "docker container ls" komutu ile gördüm.
+    Silmek için: "docker container rm e20" komutu vedim silmedi çünkü çalışıyor. bu nedenle önce durdurup sonra silmek yada tek komutla durmaya force etmek
+"docker container rm -f e20" verdim silindiğini gördüm.
+
+7: ozgurozturknet/adanzyedocker isimli imajdan websunucu adında detached ve “-p 80:80” ile portu publish edilmiş bir container yaratalım.
+Kendi bilgisayarımızın browserından bu web sitesine erişelim.
+    docker container run -d -p 80:80 ozgurozturknet/adanzyedocker oluşturdu. bold_poincare, 060
+    http://127.0.0.1/ browserdan buraya ulaştığımı gördüm. "A'dan Z'ye Docker Egitimine Hosgeldiniz."
+
+8: websunucu adlı bu container’ın içerisine bağlanalım. /usr/local/apache2/htdocs klasörünün altına geçelim ve echo “denemedir” >> index.html komutuyla
+buradaki dosyaya denemedir yazısını ekleyelim. Web tarayıcıya geçerek dosyaya ekleme yapabildiğimizi görmek için refresh edelim. Sonrasında container 
+içerisinden exit ile çıkalım.
+    "docker container exec -it 060 sh" komutu ile interaktif bir bağlantı(exect) yapsın.  bağlandım   /usr/src/myapp #
+belirtilen kalsöre geçtim "/usr/local/apache2/htdocs" komutu ile geçtim.
+    "echo "denemedir" >> index.html" komutu ile  "denemedir" yazısını index.html içine attım. browserdan refresh yaparak gördüm. "exit" ile çıktım.
+
+9: websunucu isimli container’ı çalışırken silelim.
+    Çalışırken silinmedi, "-f "i le yaptım oldu.
+
+10: Alpine isimli imajdan bir container yaratalım. Ama varsayılan olarak çalışması gereken uygulama yerine “ls” uygulamasının çalışmasını sağlayalım.
+    "docker container run alpine"--> alpine imajından bir konteynır oluşturur ve default komutu çalıştırır.
+"docker container run alpine ls"--> bir boşluktan sonra girdiğimiz komutu çalıştırır. image'dan container oluşturdu, listeledi shell'e attı ve kapattı.
+
+11: “alistirma1” isimli bir volüme yaratalım. 
+    "docker volume create alistirma1"  komutu ile oluşturuldu.
+
+12: alpine isimli imajdan “birinci” isimli bir container yaratalım. Bu container’ı interactive modda yaratalım ve bağlanabilelim. 
+Aynı zamanda “alistirma1” isimli volume’u bu containerın “/test” isimli folder’ına mount edelim. Bu folder içerisine geçelim ve 
+“touch abc.txt” komutuyla bir dosya yaratalım daha sonra “echo deneme >> abc.txt” komutuyla bu dosyanın içerisine yazı ekleyelim. 
+    "docker container run --name birinci -it -v alistirma1:/test alpine" bağlandığı için "ls" komutunu onun içinde verdim. listeledi.
+    "cd test"
+    “touch abc.txt” komutuyla bir dosya oulşturdum.
+    "echo "bir başkadır hayat docker'la" >> abc.txt" komutu ile ekledim.
+    "cat abc.txt" komutu ile içini gördüm.
+13: alpine isimli imajdan “ikinci” isimli bir container yaratalım. Bu container’ı interactive modda yaratalım ve bağlanabilelim. Aynı zamanda 
+“alistirma1” isimli volume’u bu containerın “/test” isimli folder’ına mount edelim. Bu folder içerisinde “ls” komutyla dosyaları listeleyelim
+ve abc.txt dosyası olduğunu görelim. “cat abc.txt” ile dosyanın içeriğini kontrol edelim. 
+   Yeni container olduğu için yeni shelde açtım.
+   "docker container run -it  --name ikinci -v alistirma1:/test alpine" komutu ile oluşturdum.
+   içinde abc.txt yi gördüm.
+
+14: alpine isimli imajdan “ucuncu” isimli bir container yaratalım. Bu container’ı interactive modda yaratalım 
+ve bağlanabilelim. Aynı zamanda “alistirma1” isimli volume’u bu containerın “/test” isimli folder’ına
+mount edelim fakat Read Only olarak mount edelim. Bu folder içerisine geçelim ve “touch abc1.txt” komutuyla bir dosya yaratmaya çalışalım. 
+Ve yaratamadığımızı görelim.
+    docker container run -it  --name ikinci -v alistirma1:/test:ro alpine" komutu ile oluşturdum. içini gördüm yazıyı okudum ancak 
+yeni bir dosya oluşturulmasına izin vermiyor.
+    
+15: Bilgisayarımızda bir klasör yaratalım “örneğin c:\deneme” ve bu klasörün içerisinde index.html adlı bir dosya yaratıp bu dosyanın
+içerisine birkaç yazı ekleyelim.
+    günlükmçalışamalarda dockerdenm kalsörü altına masaüstünde dnm klasörü altına index.html oluşturdum.
+
+16: ozgurozturknet/adanzyedocker isimli imajdan websunucu1 adında detached ve “-p 80:80” ile portu publish edilmiş bir container yaratalım.
+Bilgisayarımızda yarattığımız klasörü container’ın içerisindeki /usr/local/apache2/htdocs klasörüne mount edelim.
+Web browser açarak 127.0.0.1’e gidelim ve sitemizi görelim. Daha sonra bilgisayarımızda yarattığımız klasörün 
+içerisindeki index.html dosyasını edit edelim ve yeni yazılar ekleyelim. Web sayfasını refresh ederek bunların geldiğini görelim.
+    docker container run -d --name websunucu1 -p 80:80 -v c:\dnm:/usr/local/apache2/htdocs ozgurozturknet/adanzyedocker
+çalıştı ve içeriği browserdan gördüm.
+
+17: Tüm çalışan container’ları silelim. 
+    prune sadece durdurulmuş container leri sildiği için mabule silelim
+    docker container rm -f ... ... ...( id numaraları)

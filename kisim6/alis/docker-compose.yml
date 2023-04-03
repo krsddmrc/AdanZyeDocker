@@ -1,0 +1,43 @@
+version: "3.7"
+
+services:
+  database:
+    image: mysql:5.7
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 1 #BU ENV AÇIKALAMASINI HUB'TAN MYSQL E BAKARAK ÖĞREN
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      # MYSQL_PASSWORD:59778697798U899JJUYUG8 doğrudan değer atayarak şifre oluşturabiliriz.
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password    # passwordu kullanabilmesi için bir env dosyası tanımlıyoruz
+    secrets:   # service için secrets'leri atadık. bu service 'deki containerlerde run secret altında mysql_password dosya oluşacak      
+      - mysql_password 
+    networks:
+      - wp_overlay
+  wordpress:
+    image: wordpress:latest
+    depends_on: 
+      - database
+    environment:
+      WORDPRESS_DB_USER: wordpress 
+      WORDPRESS_DB_PASSWORD_FILE: /run/secrets/mysql_password
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_NAME: wordpress
+    secrets:   
+      - mysql_password 
+    networks:
+      - wp_overlay
+    ports:
+      - '8080:80'
+    deploy: 
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+networks:
+  wp_overlay:
+    driver: overlay
+
+secrets:      
+  mysql_password:    
+      file: mysqlpass.txt  
+# volume: tanımlamadık

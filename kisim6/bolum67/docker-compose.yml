@@ -1,0 +1,40 @@
+version: "3.8" # versiyon da bulunan özelliklerden dolayı önemli, belirtiyoruz.
+
+services: #iki container tanımladım; veritabanı ve wordpress
+  veritabani:
+    image: mysql:5.7
+    restart: always
+    volumes:  #volume 'u containere bağladığım yer
+      - verilerim:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpresss
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:    #network 'u containere bağladığım yer
+      - wpnet
+  wordpress: 
+    image: wordpress:latest
+    depends_on:   # bağımlı olduğu servisi gösteriyor, ona uyumlu hareket etsin
+      - veritabani
+    restart: always
+    ports:   #docker container  run -p 80:80
+      - "80:80"
+    environment: 
+      WORDPRESS_DB_HOST: veritabani:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+
+    networks: 
+      - wpnet
+
+volumes:         #volume oluşturduğum yer
+  verilerim:
+
+networks:       #network oluşturduğum yer
+  wpnet:
+    driver: bridge
+
+
+#secrets:
